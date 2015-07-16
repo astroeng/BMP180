@@ -62,7 +62,7 @@ BMP180::BMP180(Software_I2C* i2c_bus)
 
 }
 
-char BMP180::getCalibrationData()
+char BMP180::begin()
 {
   int looper = 0;
   char error = 0;
@@ -140,7 +140,7 @@ char BMP180::getCalibrationData()
   return NO_ERROR;
 }
 
-char BMP180::getData()
+char BMP180::run()
 {
   char error;
   unsigned int temp[2];

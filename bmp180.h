@@ -43,8 +43,8 @@ class BMP180
 {
 public:
   BMP180(Software_I2C* i2c_bus);
-  char getCalibrationData();
-  char getData();
+  char begin();
+  char run();
   
   int getTemperature();
   int getTemperatureAge();
