@@ -165,6 +165,7 @@ char BMP180::run()
   _i2c_bus->stop_i2c();
   
   rawTemperature = (temp[0] << 8) | temp[1];
+  temperatureTime = millis();
   
   /************ PRESSURE ************/
   
@@ -188,12 +189,13 @@ char BMP180::run()
   _i2c_bus->stop_i2c();
   
   rawPressure = (temp[0] << 8) | temp[1];
+  rawPressure = millis();
   
 }
 
 int BMP180::getTemperature()
 {
-  double temperature;
+  long temperature;
 
   TEST(Serial.println("TEMPERATURE"));
   TEST(rawTemperature = 27898);
