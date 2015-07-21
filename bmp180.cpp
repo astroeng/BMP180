@@ -189,7 +189,7 @@ char BMP180::run()
   _i2c_bus->stop_i2c();
   
   rawPressure = (temp[0] << 8) | temp[1];
-  rawPressure = millis();
+  pressureTime = millis();
   
 }
 
@@ -200,13 +200,14 @@ int BMP180::getTemperature()
   TEST(Serial.println("TEMPERATURE"));
   TEST(rawTemperature = 27898);
   
-  long val_X1 = (rawTemperature - cal_AC6) * cal_AC5 / 32768;
+  long val_X1 = ((rawTemperature - cal_AC6) * cal_AC5) / 32768;
+
   long val_X2 = (cal_MC * 2048) / (val_X1 + cal_MD);
   long val_B5 = val_X1 + val_X2;
   
   temperature = (val_B5 + 8) / 16;
   
-  return temperature;
+  return temperature * 10;
 }
 
 int BMP180::getTemperatureAge()
