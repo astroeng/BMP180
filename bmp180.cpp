@@ -42,6 +42,8 @@ BMP180::BMP180(Software_I2C* i2c_bus)
 {
   _i2c_bus = i2c_bus;
   
+  sensorState = BMP180_Initiate_Temperature;
+  
   temperatureTime = 0;
   pressureTime = 0;
   
@@ -143,54 +145,100 @@ char BMP180::begin()
 char BMP180::run()
 {
   char error;
+  char oldState = sensorState;
   unsigned int temp[2];
   
-  _i2c_bus->start_i2c();
-  _i2c_bus->write(ADDRESS);
-  _i2c_bus->write(CONTROL_REGISTER);
-  _i2c_bus->write(TEMPERATURE_MEASURE);
-  _i2c_bus->stop_i2c();
+  switch (sensorState)
+  {
+    case BMP180_Initiate_Temperature:
+      _i2c_bus->start_i2c();
+      _i2c_bus->write(ADDRESS);
+      _i2c_bus->write(CONTROL_REGISTER);
+      _i2c_bus->write(TEMPERATURE_MEASURE);
+      _i2c_bus->stop_i2c();
+      initiateTime = millis();
+      break;
   
-  delay(SAMPLE_DELAY);
+    case BMP180_Read_Temperature:
+      //delay(SAMPLE_DELAY);
   
-  _i2c_bus->start_i2c();
-  _i2c_bus->write(ADDRESS);
-  _i2c_bus->write(REGISTER_MSB);
-  _i2c_bus->stop_i2c();
+      _i2c_bus->start_i2c();
+      _i2c_bus->write(ADDRESS);
+      _i2c_bus->write(REGISTER_MSB);
+      _i2c_bus->stop_i2c();
   
-  _i2c_bus->start_i2c();
-  _i2c_bus->write(ADDRESS | 0x01);
-  temp[0] = _i2c_bus->read(&error);
-  temp[1] = _i2c_bus->read(&error, I2C_HIGH);
-  _i2c_bus->stop_i2c();
+      _i2c_bus->start_i2c();
+      _i2c_bus->write(ADDRESS | 0x01);
+      temp[0] = _i2c_bus->read(&error);
+      temp[1] = _i2c_bus->read(&error, I2C_HIGH);
+      _i2c_bus->stop_i2c();
   
-  rawTemperature = (temp[0] << 8) | temp[1];
-  temperatureTime = millis();
+      rawTemperature = (temp[0] << 8) | temp[1];
+      temperatureTime = millis();
+      break;
+      
+    case BMP180_Initiate_Pressure:
+      /************ PRESSURE ************/
   
-  /************ PRESSURE ************/
+      _i2c_bus->start_i2c();
+      _i2c_bus->write(ADDRESS);
+      _i2c_bus->write(CONTROL_REGISTER);
+      _i2c_bus->write(PRESSURE_MEASURE);
+      _i2c_bus->stop_i2c();
+      initiateTime = millis();
+      break;
+      
+    case BMP180_Read_Pressure:  
+      //delay(SAMPLE_DELAY);
   
-  _i2c_bus->start_i2c();
-  _i2c_bus->write(ADDRESS);
-  _i2c_bus->write(CONTROL_REGISTER);
-  _i2c_bus->write(PRESSURE_MEASURE);
-  _i2c_bus->stop_i2c();
+      _i2c_bus->start_i2c();
+      _i2c_bus->write(ADDRESS);
+      _i2c_bus->write(REGISTER_MSB);
+      _i2c_bus->stop_i2c();
   
-  delay(SAMPLE_DELAY);
+      _i2c_bus->start_i2c();
+      _i2c_bus->write(ADDRESS | 0x01);
+      temp[0] = _i2c_bus->read(&error);
+      temp[1] = _i2c_bus->read(&error, I2C_HIGH);
+      _i2c_bus->stop_i2c();
   
-  _i2c_bus->start_i2c();
-  _i2c_bus->write(ADDRESS);
-  _i2c_bus->write(REGISTER_MSB);
-  _i2c_bus->stop_i2c();
+      rawPressure = (temp[0] << 8) | temp[1];
+      pressureTime = millis();
+      break;
+
+    default:
+      break;
+  }
   
-  _i2c_bus->start_i2c();
-  _i2c_bus->write(ADDRESS | 0x01);
-  temp[0] = _i2c_bus->read(&error);
-  temp[1] = _i2c_bus->read(&error, I2C_HIGH);
-  _i2c_bus->stop_i2c();
+  switch (sensorState)
+  {
+    case BMP180_Initiate_Temperature:
+      sensorState = BMP180_Temperature_Wait;
+      break;
+    case BMP180_Temperature_Wait:
+      if (initiateTime + SAMPLE_DELAY < millis())
+      {
+        sensorState = BMP180_Read_Temperature;
+      }
+      break;
+    case BMP180_Read_Temperature:
+      sensorState = BMP180_Initiate_Pressure;
+      break;
+    case BMP180_Initiate_Pressure:
+      sensorState = BMP180_Pressure_Wait;
+      break;
+    case BMP180_Pressure_Wait:
+      if (initiateTime + SAMPLE_DELAY < millis())
+      {
+        sensorState = BMP180_Read_Pressure;
+      }
+      break;
+    case BMP180_Read_Pressure:
+      sensorState = BMP180_Initiate_Temperature;
+      break;
+  }
   
-  rawPressure = (temp[0] << 8) | temp[1];
-  pressureTime = millis();
-  
+  return oldState;
 }
 
 int BMP180::getTemperature()

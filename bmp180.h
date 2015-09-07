@@ -39,11 +39,22 @@
 #define REGISTER_XLSB 0xF8
 
 
+typedef enum 
+{
+  BMP180_Initiate_Temperature,
+  BMP180_Temperature_Wait,
+  BMP180_Read_Temperature,
+  BMP180_Initiate_Pressure,
+  BMP180_Pressure_Wait,
+  BMP180_Read_Pressure
+} BMP180_Sensor_States;
+
 class BMP180
 {
 public:
   BMP180(Software_I2C* i2c_bus);
   char begin();
+  char sample();
   char run();
   
   int getTemperature();
@@ -53,6 +64,7 @@ public:
 
 private:
 
+  BMP180_Sensor_States sensorState;
   Software_I2C* _i2c_bus;
   
   unsigned long temperatureTime;
@@ -60,6 +72,8 @@ private:
   
   unsigned long rawTemperature;
   unsigned long rawPressure;
+  
+  unsigned long initiateTime;
   
   long cal_AC1;
   long cal_AC2;
