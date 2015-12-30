@@ -160,7 +160,6 @@ char BMP180::run()
       break;
   
     case BMP180_Read_Temperature:
-      //delay(SAMPLE_DELAY);
   
       _i2c_bus->start_i2c();
       _i2c_bus->write(ADDRESS);
@@ -189,7 +188,6 @@ char BMP180::run()
       break;
       
     case BMP180_Read_Pressure:  
-      //delay(SAMPLE_DELAY);
   
       _i2c_bus->start_i2c();
       _i2c_bus->write(ADDRESS);
@@ -258,9 +256,9 @@ int BMP180::getTemperature()
   return temperature * 10;
 }
 
-int BMP180::getTemperatureAge()
+unsigned int BMP180::getTemperatureAge()
 {
-  return 0;
+  return millis() - temperatureTime;
 }
 
 long BMP180::getPressure()
@@ -328,7 +326,7 @@ long BMP180::getPressure()
   return pressure;
 }
 
-int BMP180::getPressureAge()
+unsigned int BMP180::getPressureAge()
 {
-  return 0;
+  return millis() - pressureTime;
 }

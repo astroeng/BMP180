@@ -58,9 +58,9 @@ public:
   char run();
   
   int getTemperature();
-  int getTemperatureAge();
+  unsigned int getTemperatureAge();
   long getPressure();
-  int getPressureAge();
+  unsigned int getPressureAge();
 
 private:
 
