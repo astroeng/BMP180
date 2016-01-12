@@ -84,7 +84,7 @@ char BMP180::begin()
   for (looper = 0; looper < 21; looper++)
   {
     temp[looper] = _i2c_bus->read(&error);
-    if (error != NO_ERROR)
+    if (error != I2C_NO_ERROR)
     {
       return error;
     }
@@ -139,7 +139,7 @@ char BMP180::begin()
   TEST(Serial.println(cal_MD));
   TEST(Serial.println("-CAL VALUES"));
   
-  return NO_ERROR;
+  return I2C_NO_ERROR;
 }
 
 char BMP180::run()
